@@ -9,7 +9,7 @@ test("alt text renders on image", async () => {
     <Pizza name={name} description="super cool pizza" image={src} />,
   );
 
-  const img = await screen.getByRole("img");
+  const img = (await screen).getByRole("img");
 
   await expect.element(img).toBeInTheDocument();
   await expect.element(img).toHaveAttribute("src", src);

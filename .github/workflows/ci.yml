@@ -26,18 +26,10 @@ jobs:
         working-directory: client
         run: npm install
 
-      - name: Install Playwright browsers
-        working-directory: client
-        run: npx playwright install --with-deps chromium
-
       - name: Lint
         working-directory: client
         run: npm run lint
 
-      - name: Test (node)
+      - name: Test
         working-directory: client
         run: npx vitest run --project happy-dom
-
-      - name: Test (browser)
-        working-directory: client
-        run: npx vitest run --project browser

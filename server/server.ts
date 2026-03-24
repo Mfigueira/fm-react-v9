@@ -113,7 +113,7 @@ server.get("/api/pizza-of-the-day", async (_req, res) => {
 
   const sizes = await db.all<{ size: string; price: string }>(
     `SELECT size, price FROM pizzas WHERE pizza_type_id = ?`,
-    [pizza.pizza_type_id],
+    [pizza.id],
   );
 
   const sizeObj = sizes.reduce<Record<string, number>>((acc, current) => {
@@ -122,11 +122,11 @@ server.get("/api/pizza-of-the-day", async (_req, res) => {
   }, {});
 
   res.send({
-    id: pizza.pizza_type_id,
+    id: pizza.id,
     name: pizza.name,
     category: pizza.category,
     description: pizza.description,
-    image: `/pizzas/${pizza.pizza_type_id}.webp`,
+    image: `/pizzas/${pizza.id}.webp`,
     sizes: sizeObj,
   });
 });
@@ -138,44 +138,41 @@ server.get("/api/orders", async (_req, res) => {
   res.send(orders);
 });
 
-server.get<{ Querystring: { id?: string } }>(
-  "/api/order",
-  async (req, res) => {
-    const { id } = req.query;
-    const orderPromise = db.get<OrderRow>(
-      "SELECT order_id, date, time FROM orders WHERE order_id = ?",
-      [id],
-    );
-    const orderItemsPromise = db.all<OrderItemRow>(
-      `SELECT 
+server.get<{ Querystring: { id?: string } }>("/api/order", async (req, res) => {
+  const { id } = req.query;
+  const orderPromise = db.get<OrderRow>(
+    "SELECT order_id, date, time FROM orders WHERE order_id = ?",
+    [id],
+  );
+  const orderItemsPromise = db.all<OrderItemRow>(
+    `SELECT 
         t.pizza_type_id as pizzaTypeId, t.name, t.category, t.ingredients as description, o.quantity, p.price, o.quantity * p.price as total, p.size
       FROM order_details o
       JOIN pizzas p ON o.pizza_id = p.pizza_id
       JOIN pizza_types t ON p.pizza_type_id = t.pizza_type_id
       WHERE order_id = ?`,
-      [id],
-    );
+    [id],
+  );
 
-    const [order, orderItemsRes] = await Promise.all([
-      orderPromise,
-      orderItemsPromise,
-    ]);
+  const [order, orderItemsRes] = await Promise.all([
+    orderPromise,
+    orderItemsPromise,
+  ]);
 
-    const orderItems = orderItemsRes.map((item) => ({
-      ...item,
-      image: `/pizzas/${item.pizzaTypeId}.webp`,
-      quantity: +item.quantity,
-      price: +item.price,
-    }));
+  const orderItems = orderItemsRes.map((item) => ({
+    ...item,
+    image: `/pizzas/${item.pizzaTypeId}.webp`,
+    quantity: +item.quantity,
+    price: +item.price,
+  }));
 
-    const total = orderItems.reduce((acc, item) => acc + item.total, 0);
+  const total = orderItems.reduce((acc, item) => acc + item.total, 0);
 
-    res.send({
-      order: { total, ...order },
-      orderItems,
-    });
-  },
-);
+  res.send({
+    order: { total, ...order },
+    orderItems,
+  });
+});
 
 server.post<{ Body: { cart: CartItemBody[] } }>(
   "/api/order",
@@ -200,21 +197,20 @@ server.post<{ Body: { cart: CartItemBody[] } }>(
       );
       const orderId = result.lastID;
 
-      const mergedCart = cart.reduce<Record<string, { pizzaId: string; quantity: number }>>(
-        (acc, item) => {
-          const id = item.pizza.id;
-          const size = item.size.toLowerCase();
-          if (!id || !size) throw new Error("Invalid item data");
-          const pizzaId = `${id}_${size}`;
-          if (!acc[pizzaId]) {
-            acc[pizzaId] = { pizzaId, quantity: 1 };
-          } else {
-            acc[pizzaId].quantity += 1;
-          }
-          return acc;
-        },
-        {},
-      );
+      const mergedCart = cart.reduce<
+        Record<string, { pizzaId: string; quantity: number }>
+      >((acc, item) => {
+        const id = item.pizza.id;
+        const size = item.size.toLowerCase();
+        if (!id || !size) throw new Error("Invalid item data");
+        const pizzaId = `${id}_${size}`;
+        if (!acc[pizzaId]) {
+          acc[pizzaId] = { pizzaId, quantity: 1 };
+        } else {
+          acc[pizzaId].quantity += 1;
+        }
+        return acc;
+      }, {});
 
       for (const item of Object.values(mergedCart)) {
         await db.run(

@@ -30,6 +30,10 @@ jobs:
         working-directory: client
         run: npm run lint
 
+      - name: Typecheck
+        working-directory: client
+        run: npm run typecheck
+
       - name: Test
         working-directory: client
         run: npx vitest run --project happy-dom

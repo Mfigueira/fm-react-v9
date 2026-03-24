@@ -32,7 +32,7 @@ jobs:
 
       - name: Generate route tree
         working-directory: client
-        run: npx tsr generate
+        run: ./node_modules/.bin/tsr generate
 
       - name: Typecheck
         working-directory: client

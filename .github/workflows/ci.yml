@@ -30,6 +30,10 @@ jobs:
         working-directory: client
         run: npm run lint
 
+      - name: Generate route tree
+        working-directory: client
+        run: npx tsr generate
+
       - name: Typecheck
         working-directory: client
         run: npm run typecheck

@@ -25,7 +25,10 @@ function ErrorBoundaryWrappedPastOrderRoutes() {
 
 function PastOrdersRoute() {
   const [page, setPage] = useState(1);
-  const [focusedOrder, setFocusedOrder] = useState();
+  const [focusedOrder, setFocusedOrder] = useState<number | undefined>(
+    undefined,
+  );
+
   const { isLoading, data } = useQuery({
     queryKey: ["past-orders", page],
     queryFn: () => getPastOrders(page),
@@ -34,9 +37,9 @@ function PastOrdersRoute() {
 
   const { isLoading: isLoadingPastOrder, data: pastOrderData } = useQuery({
     queryKey: ["past-order", focusedOrder],
-    queryFn: () => getPastOrder(focusedOrder),
+    queryFn: () => getPastOrder(focusedOrder!),
     enabled: !!focusedOrder,
-    staleTime: 24 * 60 * 60 * 1000, // one day in milliseconds,
+    staleTime: 24 * 60 * 60 * 1000,
   });
 
   if (isLoading) {
@@ -46,6 +49,7 @@ function PastOrdersRoute() {
       </div>
     );
   }
+
   return (
     <div className="past-orders">
       <table>
@@ -57,7 +61,7 @@ function PastOrdersRoute() {
           </tr>
         </thead>
         <tbody>
-          {data.map((order) => (
+          {data?.map((order) => (
             <tr key={order.order_id}>
               <td>
                 <button onClick={() => setFocusedOrder(order.order_id)}>
@@ -75,7 +79,10 @@ function PastOrdersRoute() {
           Previous
         </button>
         <div>{page}</div>
-        <button disabled={data.length < 10} onClick={() => setPage(page + 1)}>
+        <button
+          disabled={(data?.length ?? 0) < 10}
+          onClick={() => setPage(page + 1)}
+        >
           Next
         </button>
       </div>
@@ -95,7 +102,7 @@ function PastOrdersRoute() {
                 </tr>
               </thead>
               <tbody>
-                {pastOrderData.orderItems.map((pizza) => (
+                {pastOrderData?.orderItems.map((pizza) => (
                   <tr key={`${pizza.pizzaTypeId}_${pizza.size}`}>
                     <td>
                       <img src={pizza.image} alt={pizza.name} />
@@ -112,7 +119,7 @@ function PastOrdersRoute() {
           ) : (
             <p>Loading …</p>
           )}
-          <button onClick={() => setFocusedOrder()}>Close</button>
+          <button onClick={() => setFocusedOrder(undefined)}>Close</button>
         </Modal>
       ) : null}
     </div>

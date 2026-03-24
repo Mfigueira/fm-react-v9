@@ -3,8 +3,8 @@ import { createLazyFileRoute } from "@tanstack/react-router";
 import { CartContext } from "../contexts";
 import Cart from "../Cart";
 import Pizza from "../Pizza";
+import type { Pizza as PizzaType, PizzaSize } from "../types";
 
-// feel free to change en-US / USD to your locale
 const intl = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -18,8 +18,8 @@ export const Route = createLazyFileRoute("/order")({
 
 function Order() {
   const [pizzaType, setPizzaType] = useState("pepperoni");
-  const [pizzaSize, setPizzaSize] = useState("M");
-  const [pizzaTypes, setPizzaTypes] = useState([]);
+  const [pizzaSize, setPizzaSize] = useState<PizzaSize>("M");
+  const [pizzaTypes, setPizzaTypes] = useState<PizzaType[]>([]);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useContext(CartContext);
 
@@ -31,21 +31,18 @@ function Order() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        cart,
-      }),
+      body: JSON.stringify({ cart }),
     });
 
     setCart([]);
     setLoading(false);
   }
 
-  let price, selectedPizza;
+  let price = "";
+  let selectedPizza: PizzaType | undefined;
   if (!loading) {
     selectedPizza = pizzaTypes.find((pizza) => pizzaType === pizza.id);
-    price = intl.format(
-      selectedPizza.sizes ? selectedPizza.sizes[pizzaSize] : "",
-    );
+    price = intl.format(selectedPizza?.sizes[pizzaSize] ?? 0);
   }
 
   useEffect(() => {
@@ -54,7 +51,7 @@ function Order() {
 
   async function fetchPizzaTypes() {
     const pizzasRes = await fetch(`${apiUrl}/api/pizzas`);
-    const pizzasJson = await pizzasRes.json();
+    const pizzasJson: PizzaType[] = await pizzasRes.json();
     setPizzaTypes(pizzasJson);
     setLoading(false);
   }
@@ -66,10 +63,8 @@ function Order() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            setCart([
-              ...cart,
-              { pizza: selectedPizza, size: pizzaSize, price },
-            ]);
+            if (!selectedPizza) return;
+            setCart([...cart, { pizza: selectedPizza, size: pizzaSize, price }]);
           }}
         >
           <div>
@@ -92,7 +87,7 @@ function Order() {
               <div>
                 <span>
                   <input
-                    onChange={(e) => setPizzaSize(e.target.value)}
+                    onChange={(e) => setPizzaSize(e.target.value as PizzaSize)}
                     checked={pizzaSize === "S"}
                     type="radio"
                     name="pizza-size"
@@ -103,7 +98,7 @@ function Order() {
                 </span>
                 <span>
                   <input
-                    onChange={(e) => setPizzaSize(e.target.value)}
+                    onChange={(e) => setPizzaSize(e.target.value as PizzaSize)}
                     checked={pizzaSize === "M"}
                     type="radio"
                     name="pizza-size"
@@ -114,7 +109,7 @@ function Order() {
                 </span>
                 <span>
                   <input
-                    onChange={(e) => setPizzaSize(e.target.value)}
+                    onChange={(e) => setPizzaSize(e.target.value as PizzaSize)}
                     checked={pizzaSize === "L"}
                     type="radio"
                     name="pizza-size"
@@ -132,9 +127,9 @@ function Order() {
           ) : (
             <div className="order-pizza">
               <Pizza
-                name={selectedPizza.name}
-                description={selectedPizza.description}
-                image={selectedPizza.image}
+                name={selectedPizza?.name ?? ""}
+                description={selectedPizza?.description ?? ""}
+                image={selectedPizza?.image}
               />
               <p>{price}</p>
             </div>

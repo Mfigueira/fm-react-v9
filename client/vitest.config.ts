@@ -5,18 +5,18 @@ export default defineConfig({
   test: {
     projects: [
       {
-        extends: "./vite.config.js",
+        extends: "./vite.config.ts",
         test: {
-          include: ["**/*.node.test.{js,jsx}"],
+          include: ["**/*.node.test.{ts,tsx}"],
           name: "happy-dom",
           environment: "happy-dom",
         },
       },
       {
-        extends: "./vite.config.js",
+        extends: "./vite.config.ts",
         test: {
           setupFiles: ["vitest-browser-react"],
-          include: ["**/*.browser.test.{js,jsx}"],
+          include: ["**/*.browser.test.{ts,tsx}"],
           name: "browser",
           browser: {
             provider: playwright(),

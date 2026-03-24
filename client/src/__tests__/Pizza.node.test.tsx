@@ -12,8 +12,8 @@ test("alt text renders on image", async () => {
   );
 
   const img = screen.getByRole("img");
-  expect(img.src).toBe(src);
-  expect(img.alt).toBe(name);
+  expect(img.getAttribute("src")).toBe(src);
+  expect(img.getAttribute("alt")).toBe(name);
 });
 
 test("to have default image if none is provided", async () => {
@@ -22,5 +22,5 @@ test("to have default image if none is provided", async () => {
   );
 
   const img = screen.getByRole("img");
-  expect(img.src).not.toBe("");
+  expect(img.getAttribute("src")).not.toBe("");
 });

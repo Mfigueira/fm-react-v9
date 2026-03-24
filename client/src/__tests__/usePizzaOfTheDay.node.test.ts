@@ -2,11 +2,12 @@ import { expect, test, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import createFetchMock from "vitest-fetch-mock";
 import { usePizzaOfTheDay } from "../usePizzaOfTheDay";
+import type { Pizza } from "../types";
 
 const fetchMocker = createFetchMock(vi);
 fetchMocker.enableMocks();
 
-const testPizza = {
+const testPizza: Pizza = {
   id: "calabrese",
   name: "The Calabrese Pizza",
   category: "Supreme",
@@ -17,14 +18,14 @@ const testPizza = {
 };
 
 test("to be null on initial load", async () => {
-  fetch.mockResponseOnce(JSON.stringify(testPizza));
-  const { result } = renderHook(() => usePizzaOfTheDay(""));
+  fetchMocker.mockResponseOnce(JSON.stringify(testPizza));
+  const { result } = renderHook(() => usePizzaOfTheDay());
   expect(result.current).toBeNull();
 });
 
 test("to call the API and give back the pizza of the day", async () => {
-  fetch.mockResponseOnce(JSON.stringify(testPizza));
-  const { result } = renderHook(() => usePizzaOfTheDay(""));
+  fetchMocker.mockResponseOnce(JSON.stringify(testPizza));
+  const { result } = renderHook(() => usePizzaOfTheDay());
   await waitFor(() => {
     expect(result.current).toEqual(testPizza);
   });

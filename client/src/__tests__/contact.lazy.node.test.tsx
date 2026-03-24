@@ -11,15 +11,18 @@ fetchMocker.enableMocks();
 
 test("can submit contact form", async () => {
   fetchMocker.mockResponse(JSON.stringify({ status: "ok" }));
+  const ContactComponent = Route.options.component!;
   const screen = render(
     <QueryClientProvider client={queryClient}>
-      <Route.options.component />
+      <ContactComponent />
     </QueryClientProvider>,
   );
 
-  const nameInput = screen.getByPlaceholderText("Name");
-  const emailInput = screen.getByPlaceholderText("Email");
-  const msgTextArea = screen.getByPlaceholderText("Message");
+  const nameInput = screen.getByPlaceholderText("Name") as HTMLInputElement;
+  const emailInput = screen.getByPlaceholderText("Email") as HTMLInputElement;
+  const msgTextArea = screen.getByPlaceholderText(
+    "Message",
+  ) as HTMLTextAreaElement;
 
   const testData = {
     name: "Brian",
@@ -37,7 +40,7 @@ test("can submit contact form", async () => {
 
   const h3 = await screen.findByRole("heading", { level: 3 });
 
-  expect(h3.innerText).toContain("Submitted");
+  expect(h3.textContent).toContain("Submitted");
 
   const requests = fetchMocker.requests();
   expect(requests.length).toBe(1);

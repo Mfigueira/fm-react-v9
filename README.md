@@ -1,6 +1,6 @@
 ## React App
 
-This is a React App made with Vite, React Router, TanStack Query, and Vitest.
+This is a React App made with TypeScript, Vite, React Router, TanStack Query, and Vitest.
 
 ## Environment variables
 

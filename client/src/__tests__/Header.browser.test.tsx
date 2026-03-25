@@ -29,9 +29,42 @@ test("correctly renders a header with a zero cart count", async () => {
 
 test("correctly renders a header with a three cart count", async () => {
   const fakeCart = [
-    { pizza: { id: "1", name: "", category: "", description: "", image: "", sizes: { S: 1, M: 1, L: 1 } }, size: "M" as const, price: "" },
-    { pizza: { id: "2", name: "", category: "", description: "", image: "", sizes: { S: 1, M: 1, L: 1 } }, size: "M" as const, price: "" },
-    { pizza: { id: "3", name: "", category: "", description: "", image: "", sizes: { S: 1, M: 1, L: 1 } }, size: "M" as const, price: "" },
+    {
+      pizza: {
+        id: "1",
+        name: "",
+        category: "",
+        description: "",
+        image: "",
+        sizes: { S: 1, M: 1, L: 1 },
+      },
+      size: "M" as const,
+      price: "",
+    },
+    {
+      pizza: {
+        id: "2",
+        name: "",
+        category: "",
+        description: "",
+        image: "",
+        sizes: { S: 1, M: 1, L: 1 },
+      },
+      size: "M" as const,
+      price: "",
+    },
+    {
+      pizza: {
+        id: "3",
+        name: "",
+        category: "",
+        description: "",
+        image: "",
+        sizes: { S: 1, M: 1, L: 1 },
+      },
+      size: "M" as const,
+      price: "",
+    },
   ];
 
   const rootRoute = createRootRoute({

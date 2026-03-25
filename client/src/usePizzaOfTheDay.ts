@@ -1,21 +1,16 @@
-import { useState, useEffect, useDebugValue } from "react";
+import { useDebugValue } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { Pizza } from "./types";
+import getPizzaOfTheDay from "./api/getPizzaOfTheDay";
 
-export const usePizzaOfTheDay = (): Pizza | null => {
-  const [pizzaOfTheDay, setPizzaOfTheDay] = useState<Pizza | null>(null);
+export const usePizzaOfTheDay = (): Pizza | undefined => {
+  const { data } = useQuery({
+    queryKey: ["pizza-of-the-day"],
+    queryFn: getPizzaOfTheDay,
+    staleTime: 60 * 60 * 1000, // 1 hour
+  });
 
-  useDebugValue(pizzaOfTheDay ? pizzaOfTheDay.name : "Loading...");
+  useDebugValue(data ? data.name : "Loading...");
 
-  useEffect(() => {
-    async function fetchPizzaOfTheDay() {
-      const apiUrl = import.meta.env.VITE_API_URL ?? "";
-      const response = await fetch(`${apiUrl}/api/pizza-of-the-day`);
-      const data: Pizza = await response.json();
-      setPizzaOfTheDay(data);
-    }
-
-    fetchPizzaOfTheDay();
-  }, []);
-
-  return pizzaOfTheDay;
+  return data;
 };

@@ -1,16 +1,17 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useContext } from "react";
 import { createLazyFileRoute } from "@tanstack/react-router";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { CartContext } from "../contexts";
 import Cart from "../Cart";
 import Pizza from "../Pizza";
+import getPizzaTypes from "../api/getPizzaTypes";
+import postOrder from "../api/postOrder";
 import type { Pizza as PizzaType, PizzaSize } from "../types";
 
 const intl = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 });
-
-const apiUrl = import.meta.env.VITE_API_URL ?? "";
 
 export const Route = createLazyFileRoute("/order")({
   component: Order,
@@ -19,42 +20,25 @@ export const Route = createLazyFileRoute("/order")({
 function Order() {
   const [pizzaType, setPizzaType] = useState("pepperoni");
   const [pizzaSize, setPizzaSize] = useState<PizzaSize>("M");
-  const [pizzaTypes, setPizzaTypes] = useState<PizzaType[]>([]);
-  const [loading, setLoading] = useState(true);
   const [cart, setCart] = useContext(CartContext);
 
-  async function checkout() {
-    setLoading(true);
+  const { isLoading, data: pizzaTypes = [] } = useQuery({
+    queryKey: ["pizza-types"],
+    queryFn: getPizzaTypes,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-    await fetch(`${apiUrl}/api/order`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ cart }),
-    });
+  const { mutate: checkoutOrder, isPending: isOrdering } = useMutation({
+    mutationFn: postOrder,
+    onSuccess: () => setCart([]),
+  });
 
-    setCart([]);
-    setLoading(false);
-  }
+  const selectedPizza: PizzaType | undefined = pizzaTypes.find(
+    (pizza) => pizzaType === pizza.id,
+  );
+  const price = intl.format(selectedPizza?.sizes[pizzaSize] ?? 0);
 
-  let price = "";
-  let selectedPizza: PizzaType | undefined;
-  if (!loading) {
-    selectedPizza = pizzaTypes.find((pizza) => pizzaType === pizza.id);
-    price = intl.format(selectedPizza?.sizes[pizzaSize] ?? 0);
-  }
-
-  useEffect(() => {
-    fetchPizzaTypes();
-  }, []);
-
-  async function fetchPizzaTypes() {
-    const pizzasRes = await fetch(`${apiUrl}/api/pizzas`);
-    const pizzasJson: PizzaType[] = await pizzasRes.json();
-    setPizzaTypes(pizzasJson);
-    setLoading(false);
-  }
+  const loading = isLoading || isOrdering;
 
   return (
     <div className="order-page">
@@ -64,7 +48,10 @@ function Order() {
           onSubmit={(e) => {
             e.preventDefault();
             if (!selectedPizza) return;
-            setCart([...cart, { pizza: selectedPizza, size: pizzaSize, price }]);
+            setCart([
+              ...cart,
+              { pizza: selectedPizza, size: pizzaSize, price },
+            ]);
           }}
         >
           <div>
@@ -136,7 +123,11 @@ function Order() {
           )}
         </form>
       </div>
-      {loading ? <h2>LOADING …</h2> : <Cart checkout={checkout} cart={cart} />}
+      {loading ? (
+        <h2>LOADING …</h2>
+      ) : (
+        <Cart checkout={() => checkoutOrder(cart)} cart={cart} />
+      )}
     </div>
   );
 }
